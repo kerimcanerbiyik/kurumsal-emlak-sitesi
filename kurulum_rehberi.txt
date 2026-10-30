@@ -1,0 +1,76 @@
+🏡 KURUMSAL EMLAK WEB SİTESİ: KURULUM VE CANLIYA ALMA REHBERİ
+
+Bu rehber, projenin bilgisayarınızda çalıştırılmasından GitHub'a yüklenmesine ve Render üzerinden 7/24 internette yayınlanmasına kadar olan tüm adımları "sıfır hata" ile yapabilmeniz için hazırlanmıştır.
+
+--------------------------------------------------------------------------------
+1. KODLARIN DÜZENLENMESİ (Neleri Dolduracaksınız?)
+--------------------------------------------------------------------------------
+Projeyi bilgisayarınızda açtıktan sonra düzenlemeniz gereken alanlar şunlardır:
+
+* server.js Dosyası İçinde:
+  Projede size ait MongoDB bağlantısı şu an aktif olarak tanımlıdır. Eğer bu projeyi başka bir müşteriye teslim ederseniz, müşterinin kendi veritabanını bağlaması için dosyanın başındaki MONGO_URI kısmını şu şablona göre değiştirmeleri gerekir:
+  
+  // const MONGO_URI = 'mongodb+srv://KULLANICI_ADINIZ:SIFRENIZ@cluster_adi.mongodb.net/veritabani_adi?retryWrites=true&w=majority';
+
+* index.html Dosyası İçinde:
+  Müşterinin size WhatsApp üzerinden tek tıkla ulaşabilmesi için üst kısımdaki butonda yer alan telefon numarasını kendi numaralarıyla değiştirmeleri gerekir:
+  
+  <a href="https://wa.me/905XXXXXXXXX" ...>
+
+
+--------------------------------------------------------------------------------
+2. BİLGİSAYARINIZDA (LOKALDE) ÇALIŞTIRMA TESTİ
+--------------------------------------------------------------------------------
+Bilgisayarınızda VS Code programını açın, proje klasörünü içeri aktarın ve üst menüden Terminal > New Terminal seçeneğine tıklayın. Açılan siyah ekrana sırasıyla şu komutları yazıp Enter'a basın:
+
+1. Gerekli kütüphaneleri yükleyin:
+   npm install mongoose express cors
+
+2. Sunucuyu başlatın:
+   node server.js
+
+İşlem tamam! Şimdi internet tarayıcınızı (Chrome, Safari vb.) açın ve adres çubuğuna şunu yazın:
+👉 http://localhost:3000
+
+Artık siteniz bilgisayarınızda çalışıyor, ilan ekleyip test edebilirsiniz.
+
+
+--------------------------------------------------------------------------------
+3. GİTHUB'A YÜKLEME (Private Repo)
+--------------------------------------------------------------------------------
+Kodları güvenli bir şekilde saklamak ve sunucuya bağlamak için GitHub'a yükleyeceğiz:
+
+1. GitHub.com adresine girin, sağ üstteki "+" simgesine tıklayıp "New repository" deyin.
+2. Repository name kısmına bir ad yazın (örneğin: emlak-web-sitesi).
+3. Mutlaka **Private** (Gizli) seçeneğini seçin.
+4. "Create repository" butonuna basın.
+
+Şimdi VS Code terminaline geri dönün ve projenizi GitHub'a göndermek için şu komutları sırasıyla yazıp çalıştırın:
+
+git init
+git add .
+git commit -m "Emlak projesi aktif surum"
+git branch -M main
+git remote add origin https://github.com/KULLANICI_ADINIZ/repo_adi.git
+git push -u origin main
+*(Not: URL kısmındaki kullanıcı adınızı ve repo adınızı kendi GitHub adresinizle değiştirmeyi unutmayın).*
+
+
+--------------------------------------------------------------------------------
+4. RENDER ÜZERİNDEN CANLIYA ALMA (7/24 İnternette Yayınlama)
+--------------------------------------------------------------------------------
+Sitenizi internette herkesin erişebileceği canlı bir adrese taşımak için:
+
+1. render.com adresine ücretsiz üye olun ve giriş yapın.
+2. Panelde sağ üstteki **"New +"** butonuna tıklayıp **"Web Service"** seçeneğini seçin.
+3. GitHub hesabınızı bağlayın ve az önce oluşturduğunuz `emlak-web-sitesi` reposunu seçip **Connect** deyin.
+4. Açılan ayar sayfasında:
+   - **Name:** Proje adınızı yazın.
+   - **Root Directory:** Boş bırakın.
+   - **Environment:** Node
+   - **Build Command:** npm install
+   - **Start Command:** node server.js
+   - **Instance Type:** Ücretsiz (Free) seçeneğini seçin.
+5. En alttaki **"Create Web Service"** butonuna tıklayın!
+
+Render size özel bir internet adresi (`onrender.com uzantılı`) verecektir. Bu adresi müşterinize gönderdiğinizde, siteniz tüm dünyada 7/24 aktif olarak çalışacak ve ilanlar MongoDB veritabanınızda güvenle saklanacaktır!

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kurumsal Emlak Ofisi</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-950">
+
+    <script>
+        // ==========================================
+        // 1. MODEL KATMANI (Saf Veri Yapısı)
+        // ==========================================
+        class IlanModel {
+            constructor(baslik, fiyat, konum, odaSayisi, tip, danisanAdi) {
+                this.baslik = baslik;
+                this.fiyat = fiyat;
+                this.konum = konum;
+                this.odaSayisi = odaSayisi;
+                this.tip = tip;
+                this.danisanAdi = danisanAdi;
+            }
+        }
+
+
+        // ==========================================
+        // 2. VIEWMODEL KATMANI (İş Mantığı & API)
+        // ==========================================
+        class EmlakViewModel {
+            constructor() {
+                this.ilanlar = [];
+            }
+
+            async ilanlariCek() {
+                try {
+                    const response = await fetch('/api/ilanlar');
+                    const sonuc = await response.json();
+                    if (sonuc.success) {
+                        this.ilanlar = sonuc.data;
+                    }
+                    return this.ilanlar;
+                } catch (err) {
+                    console.error("İlanlar çekilemedi:", err);
+                    return [];
+                }
+            }
+
+            async ilanEkle(veri) {
+                try {
+                    const response = await fetch('/api/ilan-ekle', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(veri)
+                    });
+                    const sonuc = await response.json();
+                    return sonuc;
+                } catch (err) {
+                    return { success: false, error: err.message };
+                }
+            }
+        }
+    </script>
+
+
+    <!-- ========================================== -->
+    <!-- 3. VIEW KATMANI & GÖRÜNÜM NESNE BAĞLANTISI -->
+    <!-- ========================================== -->
+    <div id="emlakGorunumu" class="max-w-6xl mx-auto p-6">
+        
+        <!-- Üst Başlık ve WhatsApp Alanı -->
+        <header class="bg-white shadow-md rounded-xl p-6 mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-indigo-700">Kurumsal Emlak Ofisi</h1>
+                <p class="text-slate-500 text-sm mt-1">Satılık/Kiralık İlan ve Danışman Yönetim Paneli</p>
+            </div>
+            <!-- MÜŞTERİ BURAYA KENDİ WHATSAPP NUMARASINI YAZACAK -->
+            <a href="https://wa.me/905555555555" target="_blank" class="bg-emerald-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-emerald-700 transition flex items-center gap-2 shadow-sm">
+                💬 WhatsApp İletişim Hattı
+            </a>
+        </header>
+
+        <!-- İlan Ekleme Formu -->
+        <section class="bg-white shadow-md rounded-xl p-6 mb-8 border border-slate-100">
+            <h2 class="text-xl font-semibold mb-4 text-slate-800">Yeni Emlak Portföyü / İlan Ekle</h2>
+            <form id="ilanForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input type="text" id="baslik" placeholder="İlan Başlığı (Örn: Lüks Daire)" required class="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                <input type="number" id="fiyat" placeholder="Fiyat (TL)" required class="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                <input type="text" id="konum" placeholder="Konum (İl / İlçe)" required class="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                <input type="text" id="odaSayisi" placeholder="Oda Sayısı (Örn: 3+1)" required class="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                <select id="tip" class="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <option value="Satılık">Satılık</option>
+                    <option value="Kiralık">Kiralık</option>
+                </select>
+                <input type="text" id="danisanAdi" placeholder="Danışman Adı Soyadı" required class="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                <button type="submit" id="ekleBtn" class="md:col-span-3 bg-indigo-600 text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition shadow-sm">
+                    İlanı Sisteme Ekle ve Yayınla
+                </button>
+            </form>
+            <div id="formMesaj" class="mt-4 text-sm font-medium text-center hidden"></div>
+        </section>
+
+        <!-- İlan Listeleme Alanı -->
+        <section>
+            <h2 class="text-xl font-semibold mb-4 text-slate-800">Aktif Emlak Portföyü</h2>
+            <div id="ilanListesi" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- JavaScript ile dinamik olarak dolacak -->
+            </div>
+        </section>
+
+        <!-- Matruşka Mantığıyla Görünümü Nesneye Çevirip Tetikleyen Yapı -->
+        <script>
+            class EmlakViewBinding {
+                constructor(containerElement, viewModel) {
+                    this.container = containerElement;
+                    this.viewModel = viewModel;
+                    this.initBindings();
+                }
+
+                async initBindings() {
+                    await this.ilanlariEkranaBas();
+
+                    const form = this.container.querySelector('#ilanForm');
+                    const btn = this.container.querySelector('#ekleBtn');
+                    const mesajDiv = this.container.querySelector('#formMesaj');
+
+                    form.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+
+                        const baslik = this.container.querySelector('#baslik').value;
+                        const fiyat = Number(this.container.querySelector('#fiyat').value);
+                        const konum = this.container.querySelector('#konum').value;
+                        const odaSayisi = this.container.querySelector('#odaSayisi').value;
+                        const tip = this.container.querySelector('#tip').value;
+                        const danisanAdi = this.container.querySelector('#danisanAdi').value;
+
+                        btn.disabled = true;
+                        btn.textContent = "Kaydediliyor...";
+                        mesajDiv.classList.add('hidden');
+
+                        const yeniIlan = new IlanModel(baslik, fiyat, konum, odaSayisi, tip, danisanAdi);
+                        const sonuc = await this.viewModel.ilanEkle(yeniIlan);
+
+                        mesajDiv.textContent = sonuc.message || "İşlem tamamlandı.";
+                        mesajDiv.classList.remove('hidden');
+                        mesajDiv.className = `mt-4 text-sm font-medium text-center ${sonuc.success ? 'text-emerald-600 font-semibold' : 'text-rose-600'}`;
+
+                        if (sonuc.success) {
+                            form.reset();
+                            await this.ilanlariEkranaBas();
+                        }
+
+                        btn.disabled = false;
+                        btn.textContent = "İlanı Sisteme Ekle ve Yayınla";
+                    });
+                }
+
+                async ilanlariEkranaBas() {
+                    const ilanlar = await this.viewModel.ilanlariCek();
+                    const listeDiv = this.container.querySelector('#ilanListesi');
+                    
+                    if (ilanlar.length === 0) {
+                        listeDiv.innerHTML = `<p class="text-slate-500 md:col-span-3 text-center py-8 bg-white rounded-xl shadow-sm border border-slate-100">Henüz eklenmiş ilan bulunmuyor.</p>`;
+                        return;
+                    }
+
+                    listeDiv.innerHTML = ilanlar.map(ilan => `
+                        <div class="bg-white p-5 rounded-xl shadow-md border border-slate-100 flex flex-col justify-between hover:shadow-lg transition">
+                            <div>
+                                <div class="flex justify-between items-center mb-3">
+                                    <span class="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full">${ilan.tip}</span>
+                                    <span class="text-lg font-bold text-emerald-600">${ilan.fiyat.toLocaleString()} TL</span>
+                                </div>
+                                <h3 class="text-lg font-bold text-slate-800 mb-1">${ilan.baslik}</h3>
+                                <p class="text-slate-500 text-sm mb-4">📍 ${ilan.konum} | 🏠 ${ilan.odaSayisi}</p>
+                            </div>
+                            <div class="border-t pt-3 mt-2 flex justify-between items-center text-xs text-slate-500">
+                                <span>Danışman: <strong class="text-slate-700">${ilan.danisanAdi}</strong></span>
+                                <span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded font-medium">Yayında</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const gorunumElementi = document.getElementById('emlakGorunumu');
+                const viewModelInstance = new EmlakViewModel();
+                new EmlakViewBinding(gorunumElementi, viewModelInstance);
+            });
+        </script>
+    </div>
+
+</body>
+</html>
