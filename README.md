@@ -1,0 +1,1 @@
+# kurumsal_emlak_sitesi_aktif
